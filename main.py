@@ -41,7 +41,10 @@ def url_handler(url):
         return
 
     if nhentai_url in url:
-        nhentai_downloader(url, page)
+        if '/g/' in url:
+            nhentai_downloader(url, page)
+        else:
+            nhentai_tag_downloader(url, page)
     else:
         error_message(url)
 
@@ -84,8 +87,16 @@ def nhentai_downloader(url, page):
 
     window.element('-LOG-').print(f'Successfully downloaded: "{hentai_title.decode("utf-8")}"', text_color='green')
 
-def nhentai_tag_downloader(url):
+def nhentai_tag_downloader(url, page):
     """download all hentai from a tag page"""
+    tpage_tags = BeautifulSoup(page.data, 'html.parser')
+    hentai_links = tpage_tags.find_all(attrs={'class': 'cover'})
+    preq = urllib3.PoolManager()
+
+    for hlink in hentai_links:
+        full_url = sprotocol + nhentai_url + hlink['href']
+        hpage_req = preq.request('GET', full_url)
+        nhentai_downloader(full_url, hpage_req)
 
 
 while True:
